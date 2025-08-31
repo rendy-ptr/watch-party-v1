@@ -1,15 +1,12 @@
 'use client'
 
 import { Play, Github } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import AnimatedBackground from './AnimatedBackground'
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { toast } from 'sonner'
-
+import Link from 'next/link'
 export default function WatchPartyHero() {
-  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
@@ -27,14 +24,6 @@ export default function WatchPartyHero() {
         </div>
       </AnimatedBackground>
     )
-  }
-
-  const handleGetStarted = () => {
-    if (!user) {
-      toast.error('Login dulu ya ✨')
-      return
-    }
-    router.push('/content')
   }
 
   return (
@@ -59,15 +48,14 @@ export default function WatchPartyHero() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <button
-            onClick={handleGetStarted}
-            className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/20 overflow-hidden"
-          >
-            <div className="relative flex items-center gap-3">
-              <Play className="w-5 h-5 group-hover:animate-pulse" />
-              Get Started
-            </div>
-          </button>
+          <Link href="/content">
+            <button className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/20 overflow-hidden">
+              <div className="relative flex items-center gap-3">
+                <Play className="w-5 h-5 group-hover:animate-pulse" />
+                Get Started
+              </div>
+            </button>
+          </Link>
 
           <a
             href="https://github.com/rendy-ptr"
