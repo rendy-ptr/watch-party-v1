@@ -20,10 +20,12 @@ import { parseYouTubeUrlToId } from '@/lib/youtube'
 import Link from 'next/link'
 import type { RoomData, PlayerState } from '@/types/type'
 import AnimatedBackground from '@/components/AnimatedBackground'
+import { toast } from 'sonner'
 
 export default function RoomPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+
 
   const [user, setUser] = useState<User | null>(null)
   const [myId, setMyId] = useState<string | null>(null)
@@ -243,9 +245,20 @@ export default function RoomPage() {
                       <span className="text-slate-400 text-xs sm:text-sm font-medium">
                         Room:
                       </span>
-                      <code className="px-2 py-1 sm:px-2.5 sm:py-1 bg-white/10 rounded-md text-purple-300 font-mono text-xs sm:text-sm border border-white/20">
-                        {id}
-                      </code>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 sm:px-2.5 sm:py-1 bg-white/10 rounded-md text-purple-300 font-mono text-xs sm:text-sm border border-white/20">
+                          {id}
+                        </code>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(id)
+                            toast.success('Room ID copied to clipboard')
+                          }}
+                          className="px-2 py-1 text-xs sm:text-sm rounded-md bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
+                        >
+                          Copy
+                        </button>
+                      </div>
                     </div>
                     {isOwner && (
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-yellow-500/20 rounded-md border border-yellow-500/30">

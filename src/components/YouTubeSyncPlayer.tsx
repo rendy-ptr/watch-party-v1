@@ -62,13 +62,20 @@ export default function YouTubeSyncPlayer({
     const playerState = event.data
 
     try {
+      // Owner mengontrol state untuk semua viewer
       if (playerState === 1) {
+        // Playing
         setIsOwnerBuffering(false)
+        console.log('Owner: Broadcasting play state to all viewers')
         await onRemoteControl({ playing: true })
       } else if (playerState === 2) {
+        // Paused
+        console.log('Owner: Broadcasting pause state to all viewers')
         await onRemoteControl({ playing: false })
       } else if (playerState === 3) {
+        // Buffering
         setIsOwnerBuffering(true)
+        console.log('Owner: Broadcasting buffering state to all viewers')
         await onRemoteControl({ playing: false })
       }
     } catch (err) {
@@ -76,18 +83,29 @@ export default function YouTubeSyncPlayer({
     }
   }
 
+  // Sinkronisasi untuk viewer - hanya mengikuti play/pause dari owner
   useEffect(() => {
     if (!playerRef.current || isOwner) return
     const player = playerRef.current
     const playing = Boolean(state.playing)
 
     const sync = async () => {
-      const currentState = await player.getPlayerState()
-      if (playing && currentState !== 1) {
-        await player.playVideo()
-      }
-      if (!playing && currentState === 1) {
-        await player.pauseVideo()
+      try {
+        const currentState = await player.getPlayerState()
+
+        // Jika owner play, viewer harus play juga
+        if (playing && currentState !== 1) {
+          console.log('Viewer: Following owner - playing video')
+          await player.playVideo()
+        }
+
+        // Jika owner pause, viewer harus pause juga
+        if (!playing && currentState === 1) {
+          console.log('Viewer: Following owner - pausing video')
+          await player.pauseVideo()
+        }
+      } catch (err) {
+        console.error('Error syncing viewer with owner:', err)
       }
     }
 
@@ -272,13 +290,6 @@ export default function YouTubeSyncPlayer({
               />
             </svg>
           </button>
-
-          {/* Notification untuk non-owner */}
-          <div className="absolute bottom-4 left-4 z-20 px-3 py-2 bg-black/70 backdrop-blur-sm rounded-lg border border-white/20">
-            <p className="text-xs text-slate-300">
-              🔒 View-only mode • Owner controls playback
-            </p>
-          </div>
         </>
       )}
     </div>
