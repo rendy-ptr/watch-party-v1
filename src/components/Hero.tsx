@@ -5,14 +5,14 @@ import AnimatedBackground from './AnimatedBackground'
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
 export default function WatchPartyHero() {
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u)
-    })
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u))
     return () => unsub()
   }, [])
 
@@ -24,6 +24,10 @@ export default function WatchPartyHero() {
         </div>
       </AnimatedBackground>
     )
+  }
+
+  const handleGetStarted = () => {
+    router.push('/content')
   }
 
   return (
@@ -48,14 +52,15 @@ export default function WatchPartyHero() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <Link href="/content">
-            <button className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/20 overflow-hidden">
-              <div className="relative flex items-center gap-3">
-                <Play className="w-5 h-5 group-hover:animate-pulse" />
-                Get Started
-              </div>
-            </button>
-          </Link>
+          <button
+            onClick={handleGetStarted}
+            className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 backdrop-blur-sm border border-white/20 overflow-hidden"
+          >
+            <div className="relative flex items-center gap-3">
+              <Play className="w-5 h-5 group-hover:animate-pulse" />
+              Get Started
+            </div>
+          </button>
 
           <a
             href="https://github.com/rendy-ptr"
