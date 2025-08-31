@@ -8,7 +8,6 @@ import { onAuthStateChanged, User } from 'firebase/auth'
 import { nanoid } from 'nanoid'
 import { parseYouTubeUrlToId } from '@/lib/youtube'
 import AnimatedBackground from '@/components/AnimatedBackground'
-import { toast } from 'sonner'
 
 export default function ContentPage() {
   const router = useRouter()
@@ -31,9 +30,18 @@ export default function ContentPage() {
     return () => unsub()
   }, [router])
 
+  if (user === undefined) {
+    return (
+      <AnimatedBackground>
+        <div className="flex items-center justify-center min-h-screen text-white">
+          Checking authentication...
+        </div>
+      </AnimatedBackground>
+    )
+  }
+
   if (!user) {
-    toast.error('Login dulu ya ✨')
-    return
+    return null 
   }
 
   const createRoom = async () => {

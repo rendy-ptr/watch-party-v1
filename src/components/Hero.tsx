@@ -19,12 +19,21 @@ export default function WatchPartyHero() {
     return () => unsub()
   }, [])
 
+  if (user === undefined) {
+    return (
+      <AnimatedBackground>
+        <div className="flex items-center justify-center min-h-screen text-white">
+          Checking authentication...
+        </div>
+      </AnimatedBackground>
+    )
+  }
+
   const handleGetStarted = () => {
     if (!user) {
       toast.error('Login dulu ya ✨')
       return
     }
-
     router.push('/content')
   }
 
