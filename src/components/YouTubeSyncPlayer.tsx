@@ -31,6 +31,25 @@ export default function YouTubeSyncPlayer({
     playerRef.current = event.target
     setIsLoading(false)
     setPlayerError(false)
+
+    // Untuk non-owner, disable semua keyboard shortcuts
+    if (!isOwner && playerRef.current) {
+      try {
+        const iframe = document.querySelector(
+          'iframe[src*="youtube"]',
+        ) as HTMLIFrameElement
+        if (iframe) {
+          iframe.style.pointerEvents = 'none'
+          // Re-enable pointer events hanya untuk fullscreen button
+          iframe.addEventListener('dblclick', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+          })
+        }
+      } catch (err) {
+        console.error('Error setting iframe restrictions:', err)
+      }
+    }
   }
 
   const onError = () => {
@@ -74,6 +93,51 @@ export default function YouTubeSyncPlayer({
 
     sync()
   }, [state.playing, isOwner])
+
+  // Handle keyboard events untuk non-owner
+  useEffect(() => {
+    if (isOwner) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable common YouTube keyboard shortcuts untuk non-owner
+      const disabledKeys = [
+        'Space',
+        'KeyK',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'KeyJ',
+        'KeyL',
+        'KeyM',
+        'Digit0',
+        'Digit1',
+        'Digit2',
+        'Digit3',
+        'Digit4',
+        'Digit5',
+        'Digit6',
+        'Digit7',
+        'Digit8',
+        'Digit9',
+        'Period',
+        'Comma',
+        'Home',
+        'End',
+      ]
+
+      if (
+        disabledKeys.includes(e.code) &&
+        document.activeElement?.tagName === 'IFRAME'
+      ) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, true)
+    return () => document.removeEventListener('keydown', handleKeyDown, true)
+  }, [isOwner])
 
   if (!videoId) {
     return (
@@ -128,17 +192,36 @@ export default function YouTubeSyncPlayer({
         </div>
       </div>
 
+      {/* Owner/Non-owner indicator */}
+      <div className="absolute top-4 left-4 z-30">
+        <div className="px-3 py-1 bg-black/70 backdrop-blur-sm rounded-lg border border-white/20">
+          <span
+            className={`text-xs font-bold ${
+              isOwner ? 'text-green-400' : 'text-blue-400'
+            }`}
+          >
+            {isOwner ? 'OWNER' : 'VIEWER'}
+          </span>
+        </div>
+      </div>
+
       {/* YouTube Player */}
       <YouTube
         videoId={videoId}
         opts={{
           playerVars: {
             autoplay: 0,
-            controls: isOwner ? 1 : 0,
+            controls: isOwner ? 1 : 0, // Non-owner tidak memiliki controls
+            disablekb: isOwner ? 0 : 1, // Disable keyboard untuk non-owner
             modestbranding: 1,
             rel: 0,
-            showinfo: 0,
             iv_load_policy: 3,
+            fs: 1, // Tetap izinkan fullscreen untuk semua
+            playsinline: 1,
+            // Tambahan parameter untuk membatasi interaksi non-owner
+            cc_load_policy: 0, // Disable closed captions control
+            color: 'white',
+            enablejsapi: 1,
           },
         }}
         onReady={onReady}
@@ -148,11 +231,55 @@ export default function YouTubeSyncPlayer({
         iframeClassName="w-full h-full rounded-2xl"
       />
 
+      {/* Overlay untuk non-owner - mencegah interaksi tetapi izinkan fullscreen */}
       {!isOwner && (
-        <div
-          className="absolute inset-0 z-40 bg-transparent pointer-events-none"
-          title="Only the owner can control playback"
-        />
+        <>
+          {/* Overlay transparan yang mencegah klik di area player */}
+          <div
+            className="absolute inset-0 z-10 bg-transparent"
+            style={{ pointerEvents: 'auto' }}
+            onMouseDown={(e) => e.preventDefault()}
+            onMouseUp={(e) => e.preventDefault()}
+            onClick={(e) => e.preventDefault()}
+            onDoubleClick={(e) => e.preventDefault()}
+            title="Only the owner can control playback. Double-click or press F to fullscreen."
+          />
+
+          {/* Custom fullscreen button untuk non-owner */}
+          <button
+            onClick={() => {
+              const iframe = document.querySelector(
+                'iframe[src*="youtube"]',
+              ) as HTMLIFrameElement
+              if (iframe && iframe.requestFullscreen) {
+                iframe.requestFullscreen()
+              }
+            }}
+            className="absolute bottom-4 right-4 z-20 p-2 bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 transition-all duration-200 hover:scale-110"
+            title="Fullscreen"
+          >
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              />
+            </svg>
+          </button>
+
+          {/* Notification untuk non-owner */}
+          <div className="absolute bottom-4 left-4 z-20 px-3 py-2 bg-black/70 backdrop-blur-sm rounded-lg border border-white/20">
+            <p className="text-xs text-slate-300">
+              🔒 View-only mode • Owner controls playback
+            </p>
+          </div>
+        </>
       )}
     </div>
   )
