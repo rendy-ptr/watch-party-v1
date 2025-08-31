@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
@@ -17,7 +17,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+// Cek dulu apakah sudah ada app yang diinisialisasi
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
 
 export const auth = getAuth(app)
 export const db = getDatabase(app)
