@@ -5,27 +5,30 @@ import { useRouter } from 'next/navigation'
 import { onAuthStateChanged, signOut, User } from 'firebase/auth'
 import { auth, signInWithGooglePopup } from '@/lib/firebase'
 import Image from 'next/image'
-import { toast } from 'sonner'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u))
+    const unsub = onAuthStateChanged(auth, (u) => {
+      console.log('[Header] Auth state changed:', u)
+      setUser(u)
+    })
     return () => unsub()
   }, [])
 
   const handleLogin = async () => {
+    console.log('[Header] Login clicked')
     const loggedUser = await signInWithGooglePopup()
-    if (loggedUser) {
-      toast.success(`Welcome ${loggedUser.displayName}`)
-    }
+    console.log('[Header] Login result:', loggedUser)
+    if (loggedUser) setUser(loggedUser)
   }
 
   const handleLogout = async () => {
+    console.log('[Header] Logout clicked')
     await signOut(auth)
-    toast.success('Logged out successfully')
+    setUser(null)
     router.push('/')
   }
 
