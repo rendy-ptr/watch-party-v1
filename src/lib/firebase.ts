@@ -1,11 +1,12 @@
-import { initializeApp, getApps } from 'firebase/app'
+import { initializeApp } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  User,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut,
 } from 'firebase/auth'
-import { getDatabase } from 'firebase/database'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,19 +18,37 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Cek dulu apakah sudah ada app yang diinisialisasi
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
+// Init Firebase
+const app = initializeApp(firebaseConfig)
+const auth = getAuth(app)
 
-export const auth = getAuth(app)
-export const db = getDatabase(app)
 const provider = new GoogleAuthProvider()
 
-export async function signInWithGooglePopup(): Promise<User | null> {
+const loginWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, provider)
-    return result.user
-  } catch (err) {
-    console.error('Popup login error:', err)
+    return await signInWithPopup(auth, provider)
+  } catch (error) {
+    console.warn('Popup gagal, fallback ke redirect:', error)
+    await signInWithRedirect(auth, provider)
     return null
   }
 }
+
+const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth)
+    if (result) {
+      return result.user
+    }
+    return null
+  } catch (error) {
+    console.error('Redirect login error:', error)
+    return null
+  }
+}
+
+const logout = async () => {
+  await signOut(auth)
+}
+
+export { auth, provider, loginWithGoogle, handleRedirectResult, logout }

@@ -1,6 +1,6 @@
 'use client'
 
-import WatchPartyHero from '@/components/Hero'
+import WatchPartyHero from '@/features/Home/Hero'
 
 const page = () => {
   return <WatchPartyHero />
