@@ -1,37 +1,32 @@
 'use client'
 import CustomInput from '@/components/CustomInput'
 import { Maximize, Star } from 'lucide-react'
-import { User } from '@/types/users'
-import { getYoutubeId } from '@/lib/getYoutubeId'
-import { auth } from '@/lib/firebase'
 import SyncedYoutubePlayer from '../organisms/YoutubePlayer'
 
 interface VideoYoutubeRoomProps {
   id: string
-  videoUrl: string
   youtubeUrl: string
   setYoutubeUrl: (url: string) => void
-  onlineUsersList: User[]
+  isMuted: boolean
+  isOwner: boolean
 }
 
 const VideoYoutubeRoom = ({
   id,
-  videoUrl,
   youtubeUrl,
   setYoutubeUrl,
-  onlineUsersList,
+  isMuted,
+  isOwner,
 }: VideoYoutubeRoomProps) => {
-  const currentUid = auth.currentUser?.uid
-  const currentUser = onlineUsersList.find((u) => u.id === currentUid)
-  const isOwner = currentUser?.role === 'owner'
-
-  const _videoId = getYoutubeId(videoUrl) ?? ''
-
   return (
     <div className="xl:col-span-3">
       <div className="bg-black/20 backdrop-blur-lg rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
         <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-          <SyncedYoutubePlayer roomId={id} isOwner={isOwner} />
+          <SyncedYoutubePlayer
+            roomId={id}
+            isOwner={isOwner}
+            isMuted={isMuted}
+          />
           <button className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors z-20">
             <Maximize className="h-5 w-5 text-white" />
           </button>

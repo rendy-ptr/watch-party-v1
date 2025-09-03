@@ -20,11 +20,13 @@ interface VideoState {
 interface SyncedYoutubePlayerProps {
   roomId: string
   isOwner: boolean
+  isMuted: boolean
 }
 
 export default function SyncedYoutubePlayer({
   roomId,
   isOwner,
+  isMuted,
 }: SyncedYoutubePlayerProps) {
   const db = getDatabase()
   const playerRef = useRef<YT.Player | null>(null)
@@ -132,15 +134,25 @@ export default function SyncedYoutubePlayer({
     }
   }
 
+  useEffect(() => {
+    if (!playerRef.current) return
+    if (isMuted) {
+      playerRef.current.mute()
+    } else {
+      playerRef.current.unMute()
+    }
+  }, [isMuted])
+
   const opts: YT.PlayerOptions = {
     width: '100%',
     height: '100%',
     playerVars: {
-      autoplay: 0,
+      autoplay: isOwner ? 0 : 1, 
       controls: isOwner ? 1 : 0,
       disablekb: isOwner ? 0 : 1,
       rel: 0,
       modestbranding: 1,
+      playsinline: 1,
     },
   }
 

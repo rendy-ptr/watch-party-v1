@@ -8,12 +8,15 @@ import type { User } from '@/types/users'
 import HeaderYoutubeRoom from '../sections/HeaderYoutubeRoom'
 import VideoYoutubeRoom from '../sections/VideoYoutubeRoom'
 import ChatYoutubeRoom, { ChatMessage } from '../sections/ChatYoutubeRoom'
+import { auth } from '@/lib/firebase'
 
 const db = getDatabase()
 
 const YoutubeRoomContainer = () => {
   const params = useParams()
   const id = Array.isArray(params.id) ? params.id[0] : params.id ?? ''
+  const currentUid = auth.currentUser?.uid
+
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [onlineUsers, setOnlineUsers] = useState(0)
@@ -22,6 +25,17 @@ const YoutubeRoomContainer = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
   const [onlineUsersList, setOnlineUsersList] = useState<User[]>([])
+
+  const currentUser = onlineUsersList.find((u) => u.id === currentUid)
+  const isOwner = currentUser?.role === 'owner'
+
+  const [isMuted, setIsMuted] = useState(false)
+
+  useEffect(() => {
+    if (isOwner !== undefined) {
+      setIsMuted(!isOwner)
+    }
+  }, [isOwner])
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -102,6 +116,8 @@ const YoutubeRoomContainer = () => {
         id={id}
         onlineUsers={onlineUsers}
         onlineUsersList={onlineUsersList}
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
       />
 
       {/* Main Content */}
@@ -109,10 +125,10 @@ const YoutubeRoomContainer = () => {
         {/* Video Player Section */}
         <VideoYoutubeRoom
           id={id}
-          videoUrl={videoUrl}
           youtubeUrl={youtubeUrl}
           setYoutubeUrl={setYoutubeUrl}
-          onlineUsersList={onlineUsersList}
+          isMuted={isMuted}
+          isOwner={isOwner}
         />
 
         {/* Chat Section */}

@@ -8,7 +8,8 @@ declare global {
       playVideo(): void
       pauseVideo(): void
       getPlayerState(): number
-      
+      mute(): void
+      unMute(): void
     }
 
     interface PlayerVars {
@@ -19,6 +20,7 @@ declare global {
       modestbranding?: 0 | 1
       start?: number
       end?: number
+      playsinline?: 0 | 1
     }
 
     enum PlayerState {

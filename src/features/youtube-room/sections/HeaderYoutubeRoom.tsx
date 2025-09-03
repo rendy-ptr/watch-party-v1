@@ -1,21 +1,23 @@
 'use client'
 import { Crown, Settings, Volume2, VolumeX } from 'lucide-react'
 import OnlineUsers from '../organisms/OnlineUsers'
-import { useState } from 'react'
 import { User } from '@/types/users'
 
 interface HeaderYoutubeRoomProps {
   id: string
   onlineUsers: number
   onlineUsersList: User[]
+  isMuted: boolean
+  setIsMuted: (muted: boolean) => void
 }
 
 const HeaderYoutubeRoom = ({
   id,
   onlineUsers,
   onlineUsersList,
+  isMuted,
+  setIsMuted,
 }: HeaderYoutubeRoomProps) => {
-  const [isMuted, setIsMuted] = useState(false)
   return (
     <div className="max-w-7xl mx-auto mb-6 relative z-30">
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 lg:p-6 shadow-xl border border-white/20 relative overflow-visible">

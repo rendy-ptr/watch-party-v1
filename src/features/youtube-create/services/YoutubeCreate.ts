@@ -8,6 +8,7 @@ const db = getDatabase()
 export async function createRoom(youtubeUrl: string) {
   if (!auth.currentUser) throw new Error('Not logged in')
 
+    
   const roomId = uuidv4()
   const videoId = getYoutubeId(youtubeUrl)
 
