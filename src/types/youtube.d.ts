@@ -13,6 +13,7 @@ declare global {
     }
 
     interface PlayerVars {
+      mute?: 0 | 1
       autoplay?: 0 | 1
       controls?: 0 | 1 | 2
       disablekb?: 0 | 1

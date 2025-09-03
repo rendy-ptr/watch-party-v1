@@ -136,18 +136,19 @@ export default function SyncedYoutubePlayer({
 
   useEffect(() => {
     if (!playerRef.current) return
-    if (isMuted) {
+    if (isMuted || !isOwner) {
       playerRef.current.mute()
     } else {
       playerRef.current.unMute()
     }
-  }, [isMuted])
+  }, [isMuted, isOwner])
 
   const opts: YT.PlayerOptions = {
     width: '100%',
     height: '100%',
     playerVars: {
-      autoplay: isOwner ? 0 : 1, 
+      mute: isOwner ? 0 : 1,
+      autoplay: isOwner ? 0 : 1,
       controls: isOwner ? 1 : 0,
       disablekb: isOwner ? 0 : 1,
       rel: 0,
@@ -167,6 +168,7 @@ export default function SyncedYoutubePlayer({
             onStateChange={handleStateChange}
             iframeClassName="w-full h-full"
             className="w-full h-full"
+            loading="lazy"
           />
 
           {/* Overlay untuk guest agar tidak bisa klik */}
