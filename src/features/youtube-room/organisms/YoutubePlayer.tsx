@@ -59,8 +59,8 @@ export default function SyncedYoutubePlayer({
       const current = player.getCurrentTime()
       const diff = Math.abs(current - remote.time)
 
-      // 🔹 hanya seek kalau perbedaan > 60 detik
-      if (diff > 60) {
+      // 🔹 hanya seek kalau perbedaan > 0 detik
+      if (diff > 30) {
         player.seekTo(remote.time, true)
       }
 

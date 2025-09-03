@@ -22,6 +22,9 @@ declare global {
       start?: number
       end?: number
       playsinline?: 0 | 1
+      fs?: 0 | 1
+      hd?: 0 | 1
+      showinfo?: 0 | 1
     }
 
     enum PlayerState {

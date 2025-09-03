@@ -1,0 +1,42 @@
+
+:fullscreen {
+  background: black !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+:-webkit-full-screen {
+  background: black !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+:-moz-full-screen {
+  background: black !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+:-ms-fullscreen {
+  background: black !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+/* Hide scrollbars in fullscreen */
+:fullscreen::-webkit-scrollbar {
+  display: none;
+}
+
+:-webkit-full-screen::-webkit-scrollbar {
+  display: none;
+}
+
+:fullscreen {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
