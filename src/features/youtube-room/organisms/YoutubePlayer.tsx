@@ -1,99 +1,170 @@
 'use client'
-
-import { useEffect, useRef } from 'react'
-import YouTube, { YouTubePlayer, YouTubeProps } from 'react-youtube'
-import { ref, onValue, getDatabase } from 'firebase/database'
-import { updateVideoState } from '../services/updateVideoState'
+import React, { useEffect, useRef, useState } from 'react'
+import YouTube, { YouTubeEvent } from 'react-youtube'
+import { getDatabase, ref, onValue, set } from 'firebase/database'
 import { auth } from '@/lib/firebase'
-import { User } from '@/types/users'
+import { v4 as uuidv4 } from 'uuid'
 
-interface YoutubePlayerProps {
-  url: string
-  roomId: string
-  onlineUsersList: User[]
+type Action = 'init' | 'play' | 'pause'
+
+interface VideoState {
+  action: Action
+  videoId: string
+  time: number
+  rate: number
+  from: string
+  at: number
+  nonce: string
 }
 
-const YoutubePlayer = ({
-  url,
+interface SyncedYoutubePlayerProps {
+  roomId: string
+  isOwner: boolean
+}
+
+export default function SyncedYoutubePlayer({
   roomId,
-  onlineUsersList,
-}: YoutubePlayerProps) => {
-  const playerRef = useRef<YouTubePlayer | null>(null)
+  isOwner,
+}: SyncedYoutubePlayerProps) {
   const db = getDatabase()
-  const videoId = new URL(url).searchParams.get('v') ?? ''
+  const playerRef = useRef<YT.Player | null>(null)
+  const applyingRemoteRef = useRef(false)
+  const heartbeatRef = useRef<number | null>(null)
+  const [videoState, setVideoState] = useState<VideoState | null>(null)
 
-  const ownerUid = onlineUsersList.find((u) => u.role === 'owner')?.id
-  const isOwner = auth.currentUser?.uid === ownerUid
-
-  // Guest: sync dengan owner
+  // 🔹 listen ke Firebase
   useEffect(() => {
-    if (!ownerUid) return
-
     const videoRef = ref(db, `platform/youtube/rooms/${roomId}/video`)
-    const unsubscribe = onValue(videoRef, async (snapshot) => {
-      const data = snapshot.val()
-      if (!data || !playerRef.current) return
+    const unsub = onValue(videoRef, (snap) => {
+      const val = snap.val() as VideoState | null
+      if (!val) return
+      setVideoState(val)
 
-      const player = playerRef.current
-
-      if (auth.currentUser?.uid === ownerUid) return // owner tidak auto-sync
-
-      const currentTime = await player.getCurrentTime()
-      const diff = Math.abs(currentTime - data.timestamp)
-
-      if (data.state === 'playing') {
-        if (diff > 1) player.seekTo(data.timestamp, true)
-        player.playVideo()
-      } else if (data.state === 'paused') {
-        if (diff > 0.5) player.seekTo(data.timestamp, true)
-        player.pauseVideo()
+      if (!isOwner) {
+        applyRemoteState(val)
       }
     })
+    return () => unsub()
+  }, [db, roomId, isOwner])
 
-    return () => unsubscribe()
-  }, [roomId, ownerUid, db])
+  // 🔹 guest apply remote
+  function applyRemoteState(remote: VideoState) {
+    const player = playerRef.current
+    if (!player) return
 
-  // Ready event
-  const onReady: YouTubeProps['onReady'] = (event) => {
-    playerRef.current = event.target
+    applyingRemoteRef.current = true
+    try {
+      const current = player.getCurrentTime()
+      const diff = Math.abs(current - remote.time)
+
+      // 🔹 hanya seek kalau perbedaan > 60 detik
+      if (diff > 60) {
+        player.seekTo(remote.time, true)
+      }
+
+      // 🔹 action play/pause tetap sinkron
+      if (remote.action === 'play') {
+        if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+          player.playVideo()
+        }
+      } else {
+        if (player.getPlayerState() !== YT.PlayerState.PAUSED) {
+          player.pauseVideo()
+        }
+      }
+    } finally {
+      setTimeout(() => {
+        applyingRemoteRef.current = false
+      }, 500)
+    }
   }
 
-  // State change (hanya owner yang update firebase)
-  const onStateChange: YouTubeProps['onStateChange'] = (event) => {
-    if (!auth.currentUser || !playerRef.current) return
-    if (!isOwner) {
-      // Guest: abaikan event & paksa pause agar tidak desync
-      event.target.pauseVideo()
-      return
+  // 🔹 owner tulis ke Firebase
+  async function writeVideoState(action: Action) {
+    if (!auth.currentUser || !videoState || !playerRef.current) return
+    const player = playerRef.current
+
+    const payload: VideoState = {
+      action,
+      videoId: videoState.videoId,
+      time: player.getCurrentTime(),
+      rate: player.getPlaybackRate(),
+      from: auth.currentUser.uid,
+      at: Date.now(),
+      nonce: uuidv4(),
     }
 
-    const currentTime = playerRef.current.getCurrentTime()
-    if (event.data === 1) {
-      // playing
-      updateVideoState(roomId, 'playing', currentTime)
-    } else if (event.data === 2) {
-      // paused
-      updateVideoState(roomId, 'paused', currentTime)
+    const videoRef = ref(db, `platform/youtube/rooms/${roomId}/video`)
+    await set(videoRef, payload)
+  }
+
+  // 🔹 heartbeat
+  function startHeartbeat() {
+    if (!isOwner || heartbeatRef.current) return
+    heartbeatRef.current = window.setInterval(() => {
+      writeVideoState('play').catch(() => {})
+    }, 2000)
+  }
+  function stopHeartbeat() {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current)
+      heartbeatRef.current = null
     }
+  }
+  useEffect(() => () => stopHeartbeat(), [])
+
+  // 🔹 youtube events
+  function handleReady(e: YouTubeEvent) {
+    playerRef.current = e.target
+    if (videoState && !isOwner) applyRemoteState(videoState)
+  }
+
+  function handleStateChange(e: YouTubeEvent) {
+    if (applyingRemoteRef.current) return
+    if (!isOwner) return
+
+    if (e.data === YT.PlayerState.PLAYING) {
+      startHeartbeat()
+      writeVideoState('play')
+    } else if (e.data === YT.PlayerState.PAUSED) {
+      stopHeartbeat()
+      writeVideoState('pause')
+    }
+  }
+
+  const opts: YT.PlayerOptions = {
+    width: '100%',
+    height: '100%',
+    playerVars: {
+      autoplay: 0,
+      controls: isOwner ? 1 : 0,
+      disablekb: isOwner ? 0 : 1,
+      rel: 0,
+      modestbranding: 1,
+    },
   }
 
   return (
-    <YouTube
-      videoId={videoId}
-      className="w-full h-full"
-      opts={{
-        width: '100%',
-        height: '100%',
-        playerVars: {
-          autoplay: 0,
-          controls: isOwner ? 1 : 0, // Guest tanpa kontrol
-          disablekb: 1, // disable keyboard shortcut
-        },
-      }}
-      onReady={onReady}
-      onStateChange={onStateChange}
-    />
+    <div className="w-full h-full">
+      {videoState ? (
+        <div className="relative w-full h-full">
+          <YouTube
+            videoId={videoState.videoId}
+            opts={opts}
+            onReady={handleReady}
+            onStateChange={handleStateChange}
+            iframeClassName="w-full h-full"
+            className="w-full h-full"
+          />
+
+          {/* Overlay untuk guest agar tidak bisa klik */}
+          {!isOwner && (
+            <div className="absolute inset-0 z-10 cursor-not-allowed" />
+          )}
+        </div>
+      ) : (
+        <div className="text-white">Loading video…</div>
+      )}
+    </div>
   )
 }
-
-export default YoutubePlayer

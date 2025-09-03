@@ -35,7 +35,7 @@ const YoutubeRoomContainer = () => {
     const videoRef = ref(db, `platform/youtube/rooms/${id}/video`)
     const unsubscribeVideo = onValue(videoRef, (snapshot) => {
       const data = snapshot.val()
-      if (data?.url) setVideoUrl(data.url)
+      if (data?.videoId) setVideoUrl(data.videoId)
     })
 
     // Chat messages

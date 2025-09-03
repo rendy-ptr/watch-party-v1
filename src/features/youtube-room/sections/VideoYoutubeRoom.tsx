@@ -1,8 +1,10 @@
 'use client'
 import CustomInput from '@/components/CustomInput'
 import { Maximize, Star } from 'lucide-react'
-import YoutubePlayer from '../organisms/YoutubePlayer'
 import { User } from '@/types/users'
+import { getYoutubeId } from '@/lib/getYoutubeId'
+import { auth } from '@/lib/firebase'
+import SyncedYoutubePlayer from '../organisms/YoutubePlayer'
 
 interface VideoYoutubeRoomProps {
   id: string
@@ -19,15 +21,17 @@ const VideoYoutubeRoom = ({
   setYoutubeUrl,
   onlineUsersList,
 }: VideoYoutubeRoomProps) => {
+  const currentUid = auth.currentUser?.uid
+  const currentUser = onlineUsersList.find((u) => u.id === currentUid)
+  const isOwner = currentUser?.role === 'owner'
+
+  const _videoId = getYoutubeId(videoUrl) ?? ''
+
   return (
     <div className="xl:col-span-3">
       <div className="bg-black/20 backdrop-blur-lg rounded-2xl p-4 lg:p-6 shadow-2xl border border-white/20">
         <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-          <YoutubePlayer
-            url={videoUrl}
-            roomId={id}
-            onlineUsersList={onlineUsersList}
-          />
+          <SyncedYoutubePlayer roomId={id} isOwner={isOwner} />
           <button className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors z-20">
             <Maximize className="h-5 w-5 text-white" />
           </button>
@@ -50,6 +54,7 @@ const VideoYoutubeRoom = ({
             <span>Room ID: {id}</span>
           </div>
         </div>
+
         <div className="mt-4 flex flex-col lg:flex-row gap-4">
           <CustomInput
             className="w-full lg:w-[70%]"
@@ -58,7 +63,10 @@ const VideoYoutubeRoom = ({
             onChange={(e) => setYoutubeUrl(e.target.value)}
           />
 
-          <button className="w-full lg:w-[30%] p-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all">
+          <button
+            className="w-full lg:w-[30%] p-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all"
+            disabled={!isOwner} // hanya owner boleh set video
+          >
             Set Video
           </button>
         </div>
