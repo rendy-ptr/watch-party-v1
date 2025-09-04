@@ -3,7 +3,7 @@ export interface User {
   id: string
   name: string | null
   photoURL: string | null
-  role: 'owner' | 'guest' // Konsisten dengan lowercase
+  role: 'owner' | 'guest'
   joinedAt: number
 }
 

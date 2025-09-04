@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description: 'Stream together, watch together',
 }
 
+
 export default function RootLayout({
   children,
 }: {

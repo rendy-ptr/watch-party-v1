@@ -10,6 +10,10 @@ declare global {
       getPlayerState(): number
       mute(): void
       unMute(): void
+      getVideoData(): {
+        video_id: string
+      }
+      getIframe(): HTMLIFrameElement
     }
 
     interface PlayerVars {
@@ -25,6 +29,9 @@ declare global {
       fs?: 0 | 1
       hd?: 0 | 1
       showinfo?: 0 | 1
+      iv_load_policy?: 1 | 3
+      enablejsapi?: 0 | 1
+      origin?: string
     }
 
     enum PlayerState {
