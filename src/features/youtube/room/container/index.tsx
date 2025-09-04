@@ -7,11 +7,11 @@ import { ref, onValue, getDatabase } from 'firebase/database'
 import type { User } from '@/types/users'
 import HeaderYoutubeRoom from '../components/sections/HeaderYoutubeRoom'
 import VideoYoutubeRoom from '../components/sections/VideoYoutubeRoom'
-import ChatYoutubeRoom, {
-  ChatMessage,
-} from '../components/sections/ChatYoutubeRoom'
+import ChatYoutubeRoom from '../components/sections/ChatYoutubeRoom'
 import { auth } from '@/lib/firebase'
 import { usePlayerStore } from '../../../../store/playerStore'
+
+import type { ChatMessage } from '@/types/chatMessage'
 
 const db = getDatabase()
 

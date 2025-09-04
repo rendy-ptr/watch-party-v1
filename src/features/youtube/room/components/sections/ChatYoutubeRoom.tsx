@@ -6,18 +6,10 @@ import { getAuth } from 'firebase/auth'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import Image from 'next/image'
 import { formatToWIB } from '@/lib/date'
+import type { ChatMessage } from '@/types/chatMessage'
 
 const db = getDatabase()
 const auth = getAuth()
-
-export interface ChatMessage {
-  id: string
-  userId: string
-  name: string
-  photoURL: string
-  message: string
-  timestamp: number
-}
 
 interface ChatMessagesProps {
   roomId: string
