@@ -6,30 +6,23 @@ import { getAuth } from 'firebase/auth'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import Image from 'next/image'
 import { formatToWIB } from '@/lib/date'
-import type { ChatMessage } from '@/types/chatMessage'
+import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
 
 const db = getDatabase()
 const auth = getAuth()
 
 interface ChatMessagesProps {
-  roomId: string
-  messages: ChatMessage[]
-  isChatOpen: boolean
-  setIsChatOpen: (v: boolean) => void
   messagesEndRef: React.RefObject<HTMLDivElement | null>
   chatInputRef: React.RefObject<HTMLInputElement | null>
 }
 
 const ChatYoutubeRoom = ({
-  roomId,
-  messages,
-  isChatOpen,
-  setIsChatOpen,
   messagesEndRef,
   chatInputRef,
 }: ChatMessagesProps) => {
   const [newMessage, setNewMessage] = useState('')
   const [user] = useAuthState(auth)
+  const { roomId, messages, isChatOpen, setIsChatOpen } = useYoutubeRoomStore()
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !roomId || !user) return

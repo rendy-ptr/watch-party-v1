@@ -1,15 +1,16 @@
 'use client'
-import { Crown, Maximize, Volume2, VolumeX } from 'lucide-react'
+import {
+  Crown,
+  Maximize,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Headphones,
+  HeadphoneOff,
+} from 'lucide-react'
 import OnlineUsers from '../organisms/OnlineUsers'
-import { User } from '@/types/users'
-
-interface HeaderYoutubeRoomProps {
-  roomId: string
-  onlineUsers: number
-  onlineUsersList: User[]
-  isMuted: boolean
-  toggleMute: () => void
-}
+import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
 
 interface FullscreenElement extends HTMLElement {
   webkitRequestFullscreen?: () => Promise<void> | void
@@ -21,13 +22,17 @@ interface FullscreenElement extends HTMLElement {
   webkitEnterFullscreen?: () => Promise<void> | void
 }
 
-const HeaderYoutubeRoom = ({
-  roomId,
-  onlineUsers,
-  onlineUsersList,
-  isMuted,
-  toggleMute,
-}: HeaderYoutubeRoomProps) => {
+const HeaderYoutubeRoom = () => {
+  const {
+    roomId,
+    isMuted,
+    toggleMute,
+    isMicOff,
+    toggleMic,
+    isHeadphonesOff,
+    toggleHeadphones,
+  } = useYoutubeRoomStore()
+
   const handleFullscreen = () => {
     const container = document.getElementById(
       `youtube-container-${roomId}`,
@@ -37,14 +42,12 @@ const HeaderYoutubeRoom = ({
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
 
     if (isIOS) {
+      // iOS fullscreen khusus (video element langsung)
+      if (container.webkitEnterFullscreen) container.webkitEnterFullscreen()
     } else if (container.webkitRequestFullscreen) {
       container.webkitRequestFullscreen()
-    } else if (container.webkitEnterFullscreen) {
-      container.webkitEnterFullscreen()
-    } else if (container.webkitIsFullScreen) {
-      container.webkitIsFullScreen()
-    } else if (container.mozFullScreen) {
-      container.mozFullScreen()
+    } else if (container.mozRequestFullScreen) {
+      container.mozRequestFullScreen()
     } else if (container.msRequestFullscreen) {
       container.msRequestFullscreen()
     }
@@ -67,15 +70,13 @@ const HeaderYoutubeRoom = ({
             </div>
           </div>
 
-          {/* Controls container with proper overflow handling */}
+          {/* Controls */}
           <div className="flex items-center gap-4 relative">
-            {/* OnlineUsers with static positioning to prevent overflow issues */}
             <div className="relative z-50">
-              <OnlineUsers
-                onlineUsers={onlineUsers}
-                onlineUsersList={onlineUsersList}
-              />
+              <OnlineUsers />
             </div>
+
+            {/* Volume */}
             <button
               onClick={toggleMute}
               className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
@@ -86,11 +87,37 @@ const HeaderYoutubeRoom = ({
                 <Volume2 className="h-5 w-5 text-white" />
               )}
             </button>
+
+            {/* Fullscreen */}
             <button
               className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
               onClick={handleFullscreen}
             >
               <Maximize className="h-5 w-5 text-white" />
+            </button>
+
+            {/* Mic */}
+            <button
+              onClick={toggleMic}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              {isMicOff ? (
+                <MicOff className="h-5 w-5 text-white" />
+              ) : (
+                <Mic className="h-5 w-5 text-white" />
+              )}
+            </button>
+
+            {/* Headphones) */}
+            <button
+              onClick={toggleHeadphones}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              {isHeadphonesOff ? (
+                <HeadphoneOff className="h-5 w-5 text-white" />
+              ) : (
+                <Headphones className="h-5 w-5 text-white" />
+              )}
             </button>
           </div>
         </div>
@@ -98,4 +125,5 @@ const HeaderYoutubeRoom = ({
     </div>
   )
 }
+
 export default HeaderYoutubeRoom

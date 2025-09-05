@@ -5,6 +5,7 @@ import { getDatabase, ref, onValue, set } from 'firebase/database'
 import { auth } from '@/lib/firebase'
 import { v4 as uuidv4 } from 'uuid'
 import { usePlayerStore } from '@/store/playerStore'
+import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
 
 type Action = 'init' | 'play' | 'pause'
 
@@ -18,23 +19,15 @@ interface VideoState {
   nonce: string
 }
 
-interface SyncedYoutubePlayerProps {
-  roomId: string
-  isOwner: boolean
-  isMuted: boolean
-}
-
-export default function SyncedYoutubePlayer({
-  roomId,
-  isOwner,
-  isMuted,
-}: SyncedYoutubePlayerProps) {
+export default function SyncedYoutubePlayer() {
   const db = getDatabase()
   const applyingRemoteRef = useRef(false)
   const heartbeatRef = useRef<number | null>(null)
   const [videoState, setVideoState] = useState<VideoState | null>(null)
   const { player, setPlayer } = usePlayerStore()
   const [isPlayerReady, setIsPlayerReady] = useState(false)
+  const { roomId, isMuted } = useYoutubeRoomStore()
+  const isOwner = useYoutubeRoomStore((s) => s.isOwner())
 
   // 🔹 wrapper aman untuk YouTube API
   function safeCall(action: () => void) {

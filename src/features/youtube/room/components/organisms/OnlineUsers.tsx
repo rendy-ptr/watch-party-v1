@@ -2,19 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Users, ChevronDown, Crown, User } from 'lucide-react'
-import type { User as UserType } from '@/types/users'
 import Image from 'next/image'
 import { formatToWIB } from '@/lib/date'
+import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
 
-interface OnlineUsersProps {
-  onlineUsers: number
-  onlineUsersList: UserType[]
-}
-
-const OnlineUsers = ({ onlineUsers, onlineUsersList }: OnlineUsersProps) => {
+const OnlineUsers = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const { onlineUsers, onlineUsersList } = useYoutubeRoomStore()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -36,8 +33,6 @@ const OnlineUsers = ({ onlineUsers, onlineUsersList }: OnlineUsersProps) => {
   // Separate users by role
   const owners = onlineUsersList.filter((user) => user.role === 'owner')
   const guests = onlineUsersList.filter((user) => user.role === 'guest')
-
-
 
   return (
     <div className="relative">
@@ -107,7 +102,7 @@ const OnlineUsers = ({ onlineUsers, onlineUsersList }: OnlineUsersProps) => {
                                 src={user.photoURL}
                                 width={32}
                                 height={32}
-                                alt={user.name  || 'owner'}
+                                alt={user.name || 'owner'}
                                 className="w-8 h-8 rounded-full object-cover border-2 border-yellow-400"
                               />
                             ) : (

@@ -5,24 +5,13 @@ import SyncedYoutubePlayer from '../organisms/YoutubePlayer'
 import { getDatabase, ref, remove } from 'firebase/database'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
 
-interface VideoYoutubeRoomProps {
-  roomId: string
-  youtubeUrl: string
-  setYoutubeUrl: (url: string) => void
-  isMuted: boolean
-  isOwner: boolean
-}
-
-const VideoYoutubeRoom = ({
-  roomId,
-  youtubeUrl,
-  setYoutubeUrl,
-  isMuted,
-  isOwner,
-}: VideoYoutubeRoomProps) => {
+const VideoYoutubeRoom = () => {
   const db = getDatabase()
   const router = useRouter()
+  const { roomId, youtubeUrl, setYoutubeUrl } = useYoutubeRoomStore()
+  const isOwner = useYoutubeRoomStore((s) => s.isOwner())
 
   const handleDeleteRoom = async () => {
     if (!roomId) return
@@ -44,11 +33,7 @@ const VideoYoutubeRoom = ({
           className="relative rounded-xl overflow-hidden bg-black aspect-video"
           id={`youtube-container-${roomId}`}
         >
-          <SyncedYoutubePlayer
-            roomId={roomId}
-            isOwner={isOwner}
-            isMuted={isMuted}
-          />
+          <SyncedYoutubePlayer />
         </div>
 
         {/* Video Controls/Info */}
