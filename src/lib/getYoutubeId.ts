@@ -22,6 +22,11 @@ export function getYoutubeId(urlOrId: string): string | null {
       return url.pathname.split('/')[2] || null
     }
 
+    // Format live: https://www.youtube.com/live/VIDEO_ID
+    if (url.pathname.startsWith('/live/')) {
+      return url.pathname.split('/')[2] || null
+    }
+
     return null
   } catch {
     // bukan URL valid

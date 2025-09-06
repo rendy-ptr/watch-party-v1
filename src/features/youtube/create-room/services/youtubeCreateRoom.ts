@@ -5,7 +5,7 @@ import { getYoutubeId } from '@/lib/getYoutubeId'
 
 const db = getDatabase()
 
-export async function createRoom(youtubeUrl: string) {
+export async function createRoom(youtubeUrl: string, roomName: string) {
   if (!auth.currentUser) throw new Error('Not logged in')
 
   const roomId = nanoid(8)
@@ -41,6 +41,7 @@ export async function createRoom(youtubeUrl: string) {
     exists: true,
     owner: auth.currentUser.uid,
     createdAt: Date.now(),
+    roomName: roomName || 'Untitled Room',
   })
 
   return roomId

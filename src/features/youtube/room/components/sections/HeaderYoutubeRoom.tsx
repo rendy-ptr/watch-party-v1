@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import OnlineUsers from '../organisms/OnlineUsers'
 import { useYoutubeRoomStore } from '@/store/youtubeRoomStore'
+import { useEffect } from 'react'
+import { auth } from '@/lib/firebase'
 
 interface FullscreenElement extends HTMLElement {
   webkitRequestFullscreen?: () => Promise<void> | void
@@ -31,7 +33,30 @@ const HeaderYoutubeRoom = () => {
     toggleMic,
     isHeadphonesOff,
     toggleHeadphones,
+    joinVoiceRoom,
+    leaveVoiceRoom,
   } = useYoutubeRoomStore()
+  const roomName = useYoutubeRoomStore((s) => s.roomName)
+
+  useEffect(() => {
+    if (!roomId) return
+
+    const url = process.env.NEXT_PUBLIC_LIVEKIT_URL!
+
+    async function join() {
+      const uid = auth.currentUser?.uid ?? `guest-${Date.now()}`
+      const res = await fetch(`/api/livekit?room=${roomId}&uid=${uid}`)
+      const { token } = await res.json()
+
+      await joinVoiceRoom(url, token)
+    }
+
+    join()
+
+    return () => {
+      leaveVoiceRoom()
+    }
+  }, [roomId, joinVoiceRoom, leaveVoiceRoom])
 
   const handleFullscreen = () => {
     const container = document.getElementById(
@@ -61,7 +86,7 @@ const HeaderYoutubeRoom = () => {
             <div className="flex items-center gap-2">
               <Crown className="h-8 w-8 text-yellow-400" />
               <h1 className="text-lg lg:text-3xl font-bold text-white">
-                Premium Room {roomId}
+                {roomName}
               </h1>
             </div>
             <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">

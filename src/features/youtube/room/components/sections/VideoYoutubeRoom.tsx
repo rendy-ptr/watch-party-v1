@@ -1,6 +1,6 @@
 'use client'
 import CustomInput from '@/components/CustomInput'
-import { Star } from 'lucide-react'
+import { Star, Copy } from 'lucide-react'
 import SyncedYoutubePlayer from '../organisms/YoutubePlayer'
 import { getDatabase, ref, remove } from 'firebase/database'
 import { toast } from 'sonner'
@@ -22,6 +22,17 @@ const VideoYoutubeRoom = () => {
     } catch (error) {
       if (error instanceof Error) {
         toast.error(`Error deleting room: ${error.message}`)
+      }
+    }
+  }
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId)
+      toast.success('Room ID copied to clipboard')
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to copy Room ID: ${error.message}`)
       }
     }
   }
@@ -51,6 +62,12 @@ const VideoYoutubeRoom = () => {
           </div>
           <div className="flex items-center gap-2 text-white/60 text-sm">
             <span>Room ID: {roomId}</span>
+            <button
+              onClick={handleCopyToClipboard}
+              className="p-1 rounded hover:bg-white/10 transition"
+            >
+              <Copy size={16} className="text-white/60" />
+            </button>
           </div>
         </div>
 

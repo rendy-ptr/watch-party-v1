@@ -30,6 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} bg-black text-white`}
       >
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <div id="livekit-audio-container" className="hidden" />
       </body>
     </html>
   )
