@@ -42,7 +42,7 @@ export default function WatchPartyHero() {
           {/* Hero Title */}
           <div className={`${styles.fadeInUp} mb-8`}>
             <h1 className="text-6xl md:text-8xl font-bold text-white mb-6 leading-tight">
-              <span className={styles.gradientText}>CirenFlix</span>
+              <span className={styles.gradientText}>Watch Party</span>
             </h1>
             <div className="text-2xl md:text-4xl text-white/90 mb-2">
               <span>{typedText}</span>

@@ -5,7 +5,7 @@ const YoutubeJoinRoomHeader = () => {
   return (
     <div className={`${styles.fadeInUp} mb-8`}>
       <h1 className="text-5xl font-bold text-white mb-6 leading-tight text-center">
-        <span className={styles.gradientText}>CirenFlix</span>
+        <span className={styles.gradientText}>Watch Party</span>
       </h1>
     </div>
   )
